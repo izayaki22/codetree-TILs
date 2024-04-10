@@ -141,7 +141,8 @@ for _ in range(p):
 for time in range(m):
 
     if(len(santa_pos) == 0):
-        print(score_board.values())
+        for num in sorted(list(score_board.keys())):
+            print(score_board[num], end = ' ')
         exit()
 
     paused_temp = {}
