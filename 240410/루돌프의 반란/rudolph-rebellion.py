@@ -2,10 +2,12 @@ import sys
 input = sys.stdin.readline
 import copy
 
-def ru_move(rux, ruy, santa_pos):
+def ru_move(rux, ruy):
+    global santa_pos
+
     distance = [] # (거리, 산타 -x좌표, 산타 -y좌표) 오름차순
 
-    for pos in santa_pos:
+    for pos in santa_pos.values():
         sx, sy = pos[0], pos[1]
         dis = (rux - sx) ** 2 + (ruy - sy) ** 2
         distance.append((dis, -sx, -sy))
@@ -32,6 +34,8 @@ def ru_move(rux, ruy, santa_pos):
     return rux, ruy, dis_x, dis_y
 
 def santa_move(key, v):
+    global santa_pos
+
     dxy = [(-1, 0), (0, 1), (1, 0), (0, -1)]
     cur_dis = (v[0] - rux) ** 2 + (v[1] - ruy) ** 2
     case = []
@@ -40,7 +44,7 @@ def santa_move(key, v):
         dis = (v[0] + dxy[i][0] - rux) ** 2 + (v[1] + dxy[i][1] - ruy) ** 2
         if(cur_dis > dis):
             min_x, min_y = v[0] + dxy[i][0], v[1] + dxy[i][1]
-            dx, dy =  dxy[i][0], dxy[i][1]
+            dx, dy = dxy[i][0], dxy[i][1]
             case.append([dis, min_x, min_y, dx, dy])
 
     case = sorted(case, key = lambda x:x[0])
@@ -52,8 +56,8 @@ def santa_move(key, v):
             return True, min_x, min_y, dx, dy
 
     return False, 0
-def crash(who, time, rux, ruy, dis_x, dis_y, power, santa_pos):
-
+def crash(who, time, rux, ruy, dis_x, dis_y, power):
+    global santa_pos
     # print("루돌프 위치는 ", rux, ruy, dis_x, dis_y)
 
     if(who == 'R'): # 루돌프가 움직여서 충돌한 경우
@@ -72,7 +76,7 @@ def crash(who, time, rux, ruy, dis_x, dis_y, power, santa_pos):
         if(0 <= nsx < n and 0 <= nsy < n):
 
             if([nsx, nsy] in santa_pos.values()):
-                interaction(nsx, nsy, k, dis_x, dis_y)
+                interaction(v[0], v[1], nsx, nsy, dis_x, dis_y)
             else:
                 santa_pos[k] = [nsx, nsy]
         else:
@@ -82,39 +86,41 @@ def crash(who, time, rux, ruy, dis_x, dis_y, power, santa_pos):
         paused_santa[who] = time
         score_update(who, power)
         dis_x, dis_y = -dis_x, -dis_y
-        nsx, nsy = rux + (dis_x * power), ruy + (dis_y * power)  # san_power만큼 밀려난 산타의 새 position
+        new_sx, new_sy = rux + (dis_x * power), ruy + (dis_y * power)  # san_power만큼 밀려난 산타의 새 position
 
-        if (0 <= nsx < n and 0 <= nsy < n):
-
-            if ([nsx, nsy] in santa_pos.values()):
-                interaction(nsx, nsy, who, dis_x, dis_y)
+        if (0 <= new_sx < n and 0 <= new_sy < n):
+            if ([new_sx, new_sy] in santa_pos.values()):
+                interaction(rux, ruy, new_sx, new_sy, dis_x, dis_y)
             else:
-                santa_pos[who] = [nsx, nsy]
+                santa_pos[who] = [new_sx, new_sy]
         else:
             del santa_pos[who]
 
-def interaction(nsx, nsy, k, dis_x, dis_y):
+def interaction(psx, psy, nsx, nsy, dis_x, dis_y):
     global santa_pos
 
-    new_pos = {} # 산타 번호 : 새 좌표
-    new_pos[k] = [nsx, nsy]
-    # nsx, nsy : 겹치는 산타의 좌표. (나중에 좌표 업데이트 필요)
-    # k : 날라온 산타의 번호
-    # dis_x, dis_y : 산타가 날라온 방향
+    new_pos = {} # 이전 좌표 : 새 좌표
+    new_pos[(psx, psy)] = [nsx, nsy]
+    new_santa_pos = {}
+
+    previous_pos = list(santa_pos.values())
+
+    new_x, new_y = nsx, nsy
+    while([new_x, new_y] in previous_pos):
+        new_pos[(new_x, new_y)] = [new_x + dis_x, new_y + dis_y]
+        new_x += dis_x
+        new_y += dis_y
 
     for key, val in santa_pos.items():
-        if([nsx, nsy] == val):
-            if(0 <= nsx + dis_x < n and 0 <= nsy + dis_y < n):
-                new_pos[key] = [nsx + dis_x, nsy + dis_y]
 
-            nsx += dis_x
-            nsy += dis_y
-        elif(key != k):
-            new_pos[key] = val
+        if(tuple(val) in new_pos):
+            if(0 <= val[0] < n and 0 <= val[1] < n):
+                new_santa_pos[key] = new_pos[tuple(val)]
+        else:
+            new_santa_pos[key] = val
 
     #santa_pos를 업데이트 하는 방법
-    santa_pos = copy.deepcopy(new_pos)
-
+    santa_pos = copy.deepcopy(new_santa_pos)
 
 def score_update(key, value):
 
@@ -142,7 +148,7 @@ for time in range(m):
 
     if(len(santa_pos) == 0):
         for num in sorted(list(score_board.keys())):
-            print(score_board[num], end = ' ')
+            print(score_board[num], end=' ')
         exit()
 
     paused_temp = {}
@@ -152,17 +158,17 @@ for time in range(m):
 
     paused_santa = copy.deepcopy(paused_temp)
 
-    rux, ruy, dis_x, dis_y = ru_move(rux, ruy, santa_pos.values())
+    rux, ruy, dis_x, dis_y = ru_move(rux, ruy)
     if([rux, ruy] in santa_pos.values()):
-        crash("R", time, rux, ruy, dis_x, dis_y, ru_power, santa_pos)
+        crash("R", time, rux, ruy, dis_x, dis_y, ru_power)
 
     for key in list(sorted(santa_pos.keys()))[:]:  # 모든 산타가 움직인다.
-        if (key not in paused_santa):
+        if (key not in paused_santa and key in santa_pos.keys()):
             bool_li = santa_move(key, santa_pos[key])
             if(bool_li[0]):
                 nsx, nsy, dx, dy = bool_li[1:]
                 if(nsx == rux and nsy == ruy):
-                    crash(key, time, rux, ruy, dx, dy, san_power, santa_pos)
+                    crash(key, time, rux, ruy, dx, dy, san_power)
 
     for key in santa_pos.keys():
         score_update(key, 1)
