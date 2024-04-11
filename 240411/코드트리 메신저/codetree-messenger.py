@@ -1,6 +1,5 @@
 import sys
 input = sys.stdin.readline
-import copy
 from collections import deque
 
 def change_state(i):
@@ -18,32 +17,38 @@ def chage_parent(n1, n2):
     p1 = parents[n1 - 1] # n1의 부모 노드
     p2 = parents[n2 - 1] # n2의 부모 노드
 
-    temp1 = copy.deepcopy(child[p1])
-    temp1.remove(n1)
-    temp1.append(n2)
-    child[p1] = temp1
+    # temp1 = copy.deepcopy(child[p1])
+    # temp1.remove(n1)
+    # temp1.append(n2)
+    # child[p1] = temp1
 
-    temp2 = copy.deepcopy(child[p2])
-    temp2.remove(n2)
-    temp2.append(n1)
-    child[p2] = temp2
+    child[p1].remove(n1)
+    child[p1].append(n2)
+
+    # temp2 = copy.deepcopy(child[p2])
+    # temp2.remove(n2)
+    # temp2.append(n1)
+    # child[p2] = temp2
+
+    child[p2].remove(n2)
+    child[p2].append(n1)
 
     parents[n1 - 1] = p2
     parents[n2 - 1] = p1
 
 
 def bfs(i):
-    global visited
+    #global visited
     global child
     global athrz
     global state
 
     que = deque()
     cnt = 0
-    visited[i] = True
+    #visited[i] = True
     for j in range(len(child[i])):
         que.append((child[i][j], 1))
-        visited[child[i][j]] = True
+        #visited[child[i][j]] = True
 
     while(que):
         ch, dpth = que.popleft()
@@ -52,12 +57,11 @@ def bfs(i):
                 cnt += 1
 
             for j in range(len(child[ch])):
-                if(not visited[child[ch][j]]):
-                    que.append((child[ch][j], dpth + 1))
-                    visited[child[ch][j]] = True
+                #if(not visited[child[ch][j]]):
+                que.append((child[ch][j], dpth + 1))
+                #visited[child[ch][j]] = True
 
     return cnt
-
 
 n, q = map(int, input().split())
 
@@ -65,7 +69,7 @@ l = list(map(int, input().split()))
 parents = l[1 : n + 1]
 athrz = [0] + l[n + 1 :]
 state = [True] * (n + 1)
-visited = [False] * (n + 1)
+#visited = [False] * (n + 1)
 
 child = [[] for _ in range(n + 1)]
 for i in range(n):
@@ -82,4 +86,4 @@ for _ in range(q - 1):
         chage_parent(cmd[1], cmd[2]) # 부모 변경하기
     else:
         print(bfs(cmd[1])) # cmd[1]의 정보 출력하기
-        visited = [False] * (n + 1)
+        #visited = [False] * (n + 1)
