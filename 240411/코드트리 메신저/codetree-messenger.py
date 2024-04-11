@@ -7,7 +7,6 @@ def bfs(i):
     global athrz
     global state
 
-    s = max(set(athrz))
     que = deque()
     cnt = 0
     for j in range(len(child[i])):
@@ -22,7 +21,7 @@ def bfs(i):
 
         for j in range(len(child[ch])):
             if(state[child[ch][j]]):
-                if(dpth + 1 > s):
+                if(max_athrz < dpth + 1):
                     break
                 que.append((child[ch][j], dpth + 1))
 
@@ -35,6 +34,7 @@ l = list(map(int, input().split()))
 parents = l[1 : n + 1]
 athrz = [0] + l[n + 1 :]
 state = [True] * (n + 1)
+max_athrz = max(athrz)
 
 child = [[] for _ in range(n + 1)]
 for i in range(n):
@@ -47,6 +47,7 @@ for _ in range(q - 1):
         state[cmd[1]] = False if(state[cmd[1]]) else True
     elif(cmd[0] == 300): # 권한 변경하기
         athrz[cmd[1]] = cmd[2]
+        max_athrz = max(max_athrz, cmd[2])
     elif(cmd[0] == 400): # 부모 변경하기
         n1, n2 = cmd[1], cmd[2]
         p1 = parents[n1 - 1]  # n1의 부모 노드
