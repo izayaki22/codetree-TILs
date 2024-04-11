@@ -7,6 +7,7 @@ def bfs(i):
     global athrz
     global state
 
+    s = set(athrz)
     que = deque()
     cnt = 0
     for j in range(len(child[i])):
@@ -15,11 +16,14 @@ def bfs(i):
 
     while(que):
         ch, dpth = que.popleft()
+
         if(dpth <= athrz[ch]):
             cnt += 1
 
         for j in range(len(child[ch])):
             if(state[child[ch][j]]):
+                if(dpth + 1 not in s):
+                    break
                 que.append((child[ch][j], dpth + 1))
 
     return cnt
