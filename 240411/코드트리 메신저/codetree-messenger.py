@@ -28,6 +28,9 @@ def chage_parent(n1, n2):
     temp2.append(n1)
     child[p2] = temp2
 
+    parents[n1 - 1] = p2
+    parents[n2 - 1] = p1
+
 
 def bfs(i):
     global visited
