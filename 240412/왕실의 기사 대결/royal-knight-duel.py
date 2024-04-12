@@ -92,7 +92,7 @@ for _ in range(q):
                                 lived_knights[i] = lived_knights[i] + 1
                                 if (heart[i] <= 0):
                                     del lived_knights[i]
-                                    continue
+                                    break
 
 ans = 0
 for kni, damage in lived_knights.items():
