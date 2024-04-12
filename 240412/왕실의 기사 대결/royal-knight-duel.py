@@ -1,103 +1,98 @@
-import sys
-input = sys.stdin.readline
 from collections import deque
 
-l, n, q = map(int, input().split())
-chess = [[-1] * (l + 2) for _ in range(l + 2)]
-knights = [0] * (n + 1) # 기사의 (h, w) 값
-heart = [0] * (n + 1) # 기사의 체력 k 값
-lived_knights = {} # 생존한 기사의 번호 : 받은 대미지
-pos = [0] * (n + 1) # 기사의 위치 좌표 (r, c) 값
-
-
-for i in range(l):
-    li = list(map(int, input().split()))
-    for j in range(l):
-
-        if(li[j] == 1): # 함정
-            chess[i + 1][j + 1] = 1
-        elif(li[j] == 0): # 빈칸
-            chess[i + 1][j + 1] = 0
-
-for i in range(1, n + 1):
-    r, c, h, w, k = map(int, input().split())
-    knights[i] = (h, w)
-    heart[i] = k
-    lived_knights[i] = 0
-    pos[i] = (r, c)
-
-
-
-# 위, 오, 아, 왼
+# 전역 변수들을 정의합니다.
+MAX_N = 31
+MAX_L = 41
 dx = [-1, 0, 1, 0]
 dy = [0, 1, 0, -1]
 
+info = [[0 for _ in range(MAX_L)] for _ in range(MAX_L)]
+bef_k = [0 for _ in range(MAX_N)]
+r = [0 for _ in range(MAX_N)]
+c = [0 for _ in range(MAX_N)]
+h = [0 for _ in range(MAX_N)]
+w = [0 for _ in range(MAX_N)]
+k = [0 for _ in range(MAX_N)]
+nr = [0 for _ in range(MAX_N)]
+nc = [0 for _ in range(MAX_N)]
+dmg = [0 for _ in range(MAX_N)]
+is_moved = [False for _ in range(MAX_N)]
 
-def bfs(idx, dir):
 
-    que = deque()
-    visited = [False] * (n + 1)
-    que.append(idx)
-    visited[idx] = True
+# 움직임을 시도해봅니다.
+def try_movement(idx, dir):
+    q = deque()
+    is_pos = True
 
-    while(que):
-        x = que.popleft()
-        r, c = pos[x]
-        nr, nc = r + dx[dir], c + dy[dir]
-        h, w = knights[x]
+    # 초기화 작업입니다.
+    for i in range(1, n + 1):
+        dmg[i] = 0
+        is_moved[i] = False
+        nr[i] = r[i]
+        nc[i] = c[i]
 
-        if(nr < 1 or l < nr + h - 1 or nc < 1 or l < nc + w - 1):
-            return False, 0
+    q.append(idx)
+    is_moved[idx] = True
 
-        for i in range(nr, nr + h):
-            for j in range(nc, nc + w):
-                if(chess[i][j] == -1):
-                    return False, 0
+    while q:
+        x = q.popleft()
 
+        nr[x] += dx[dir]
+        nc[x] += dy[dir]
+
+        # 경계를 벗어나는지 체크합니다.
+        if nr[x] < 1 or nc[x] < 1 or nr[x] + h[x] - 1 > l or nc[x] + w[x] - 1 > l:
+            return False
+
+        # 대상 조각이 다른 조각이나 장애물과 충돌하는지 검사합니다.
+        for i in range(nr[x], nr[x] + h[x]):
+            for j in range(nc[x], nc[x] + w[x]):
+                if info[i][j] == 1:
+                    dmg[x] += 1
+                if info[i][j] == 2:
+                    return False
+
+        # 다른 조각과 충돌하는 경우, 해당 조각도 같이 이동합니다.
         for i in range(1, n + 1):
-            if(i == x or i not in lived_knights):
+            if is_moved[i] or k[i] <= 0:
                 continue
-            else:
-                ix, iy = pos[i]
-                ih, iw = knights[i]
+            if r[i] > nr[x] + h[x] - 1 or nr[x] > r[i] + h[i] - 1:
+                continue
+            if c[i] > nc[x] + w[x] - 1 or nc[x] > c[i] + w[i] - 1:
+                continue
 
-                if ix > nr + h - 1 or nr > ix + ih - 1:
-                    continue
-                if iy > nc + w - 1 or nc > iy + iw - 1:
-                    continue
-                if visited[i] == False:
-                    que.append(i)
-                    visited[i] = True
+            is_moved[i] = True
+            q.append(i)
 
-    return True, visited
+    dmg[idx] = 0
+    return True
+
+
+# 특정 조각을 지정된 방향으로 이동시키는 함수입니다.
+def move_piece(idx, move_dir):
+    if k[idx] <= 0:
+        return
+
+    # 이동이 가능한 경우, 실제 위치와 체력을 업데이트합니다.
+    if try_movement(idx, move_dir):
+        for i in range(1, n + 1):
+            r[i] = nr[i]
+            c[i] = nc[i]
+            k[i] -= dmg[i]
+
+
+# 입력값을 받습니다.
+l, n, q = map(int, input().split())
+for i in range(1, l + 1):
+    info[i][1:] = map(int, input().split())
+for i in range(1, n + 1):
+    r[i], c[i], h[i], w[i], k[i] = map(int, input().split())
+    bef_k[i] = k[i]
 
 for _ in range(q):
-    num, dir = map(int, input().split())
-    if(num in lived_knights): # 명령을 받은 기사가 살아있음
-        x, y = pos[num]
-        bol, vis = bfs(num, dir)
-        h, w = knights[num]
+    idx, d = map(int, input().split())
+    move_piece(idx, d)
 
-        if(bol): # 움직일 수 있다
-            for i in range(1, n + 1):
-                if(vis[i]):
-                    ix, iy = pos[i]
-                    ih, iw = knights[i]
-                    pos[i] = (ix + dx[dir], iy + dy[dir])
-                    if(i == num):
-                        continue
-                    for ri in range(ix, ix + ih):
-                        for ci in range(iy, iy + iw):
-                            if(chess[ri + dx[dir]][ci + dy[dir]] == 1 and i in lived_knights):
-                                heart[i] -= 1
-                                lived_knights[i] = lived_knights[i] + 1
-                                if (heart[i] <= 0):
-                                    del lived_knights[i]
-                                    break
-
-ans = 0
-for kni, damage in lived_knights.items():
-    ans += damage
-
-
+# 결과를 계산하고 출력합니다.
+ans = sum([bef_k[i] - k[i] for i in range(1, n + 1) if k[i] > 0])
 print(ans)
