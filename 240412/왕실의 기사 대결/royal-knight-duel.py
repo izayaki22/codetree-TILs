@@ -96,7 +96,7 @@ for _ in range(q):
                         temp[i + dx[dir] - 1][j + dy[dir] - 1] = chess[i][j]
 
                         kni = temp[i + dx[dir] - 1][j + dy[dir] - 1]
-                        if (kni != num and (i + dx[dir], j + dy[dir]) in omg):
+                        if (kni != num and (i + dx[dir], j + dy[dir]) in omg and kni in lived_knights):
                             heart[kni] -= 1
                             lived_knights[kni] = lived_knights[kni] + 1
                             if (heart[kni] <= 0):
