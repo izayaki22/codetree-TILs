@@ -51,7 +51,7 @@ def bfs(x, y, num, dir):
 
     visited = [[0] * (len(chess[0])) for _ in range(len(chess))]
 
-    if(dir == 2):
+    if(dir == 0):
         x += (knights[num][0] - 1)
     elif(dir == 3):
         y += (knights[num][1] - 1)
