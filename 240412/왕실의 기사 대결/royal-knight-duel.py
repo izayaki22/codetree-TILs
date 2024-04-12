@@ -4,7 +4,6 @@ from collections import deque
 
 l, n, q = map(int, input().split())
 chess = [[-1] * (l + 2) for _ in range(l + 2)]
-omg = {} # 함정의 좌표
 knights = [0] * (n + 1) # 기사의 (h, w) 값
 heart = [0] * (n + 1) # 기사의 체력 k 값
 lived_knights = {} # 생존한 기사의 번호 : 받은 대미지
@@ -16,8 +15,8 @@ for i in range(l):
     for j in range(l):
 
         if(li[j] == 1): # 함정
-            omg[(i + 1, j + 1)] = 1
-        if(li[j] != 2): # 빈칸
+            chess[i + 1][j + 1] = 1
+        elif(li[j] == 0): # 빈칸
             chess[i + 1][j + 1] = 0
 
 for i in range(1, n + 1):
@@ -27,9 +26,6 @@ for i in range(1, n + 1):
     lived_knights[i] = 0
     pos[i] = (r, c)
 
-    for j in range(r, r + h):
-        for ci in range(c, c + w):
-            chess[j][ci] = i
 
 
 # 위, 오, 아, 왼
@@ -59,11 +55,12 @@ def bfs(idx, dir):
                     return False, 0
 
         for i in range(1, n + 1):
-            if(i == x):
+            if(i == x or i not in lived_knights):
                 continue
             else:
                 ix, iy = pos[i]
                 ih, iw = knights[i]
+
                 if ix > nr + h - 1 or nr > ix + ih - 1:
                     continue
                 if iy > nc + w - 1 or nc > iy + iw - 1:
@@ -71,7 +68,6 @@ def bfs(idx, dir):
                 if visited[i] == False:
                     que.append(i)
                     visited[i] = True
-
 
     return True, visited
 
@@ -92,7 +88,7 @@ for _ in range(q):
                         continue
                     for ri in range(ix, ix + ih):
                         for ci in range(iy, iy + iw):
-                            if((ri + dx[dir], ci + dy[dir]) in omg and i in lived_knights):
+                            if(chess[ri + dx[dir]][ci + dy[dir]] == 1 and i in lived_knights):
                                 heart[i] -= 1
                                 lived_knights[i] = lived_knights[i] + 1
                                 if (heart[i] <= 0):
