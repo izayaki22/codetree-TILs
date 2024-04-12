@@ -8,6 +8,7 @@ omg = {} # 함정의 좌표
 knights = [0] * (n + 1) # 기사의 (h, w) 값
 heart = [0] * (n + 1) # 기사의 체력 k 값
 lived_knights = {} # 생존한 기사의 번호 : 받은 대미지
+pos = [0] * (n + 1) # 기사의 위치 좌표 (r, c) 값
 
 
 for i in range(l):
@@ -24,6 +25,7 @@ for i in range(1, n + 1):
     knights[i] = (h, w)
     heart[i] = k
     lived_knights[i] = 0
+    pos[i] = (r, c)
 
     for j in range(r, r + h):
         for ci in range(c, c + w):
@@ -34,83 +36,63 @@ for i in range(1, n + 1):
 dx = [-1, 0, 1, 0]
 dy = [0, 1, 0, -1]
 
-def find_knights(num): # num에 해당하는 기사의 왼쪽 위의 좌표 찾기
-    global chess
-    for i in range(len(chess)):
-        for j in range(len(chess[0])):
-            if (chess[i][j] == num):
-                return i, j
 
-def bfs(x, y, num, dir):
+def bfs(idx, dir):
 
     que = deque()
-    if(dir in [0, 2]):
-        no_dir = 2 - dir
-    else:
-        no_dir = 4 - dir
-
-    visited = [[0] * (len(chess[0])) for _ in range(len(chess))]
-
-    if(dir == 0):
-        x += (knights[num][0] - 1)
-    elif(dir == 3):
-        y += (knights[num][1] - 1)
-
-    que.append((x, y))
-    visited[x][y] = 1
+    visited = [False] * (n + 1)
+    que.append(idx)
+    visited[idx] = True
 
     while(que):
-        x, y = que.popleft()
+        x = que.popleft()
+        r, c = pos[x]
+        nr, nc = r + dx[dir], c + dy[dir]
+        h, w = knights[x]
 
-        for i in range(4):
+        if(nr < 1 or l < nr + h - 1 or nc < 1 or l < nc + w - 1):
+            return False, 0
 
-            if(i == no_dir):
+        for i in range(nr, nr + h):
+            for j in range(nc, nc + w):
+                if(chess[i][j] == -1):
+                    return False, 0
+
+        for i in range(1, n + 1):
+            if(i == x):
                 continue
             else:
-
-                nx = x + dx[i]
-                ny = y + dy[i]
-
-                if(i == dir):
-                    if(not (1 <= nx <= l and 1 <= ny <= l) or chess[nx][ny] == -1):
-                        return False, 0
-
-                if(1 <= nx <= l and 1 <= ny <= l and not visited[nx][ny] and 1 <= chess[nx][ny] <= n):
-                    que.append((nx, ny))
-                    visited[nx][ny] = 1
+                ix, iy = pos[i]
+                ih, iw = knights[i]
+                if((nr <= ix < nr + h and nc <= iy < nc + w) or (nr <= ix + ih - 1 < nr + h and nc <= iy + iw - 1 < nc + w) and visited[i] == False): # 겹치는 경우
+                    que.append(i)
+                    visited[i] = True
 
     return True, visited
 
 for _ in range(q):
     num, dir = map(int, input().split())
     if(num in lived_knights): # 명령을 받은 기사가 살아있음
-        x, y = find_knights(num)
-        bol, vis = bfs(x, y, num, dir)
-        if(bol): # 움직일 수 있다.
-            temp = [[0] * (l) for _ in range(l)]
+        x, y = pos[num]
+        bol, vis = bfs(num, dir)
+        h, w = knights[num]
 
-            for i in range(1, l + 1):
-                for j in range(1, l + 1):
-
-                    if(vis[i][j] == 1):
-                        temp[i + dx[dir] - 1][j + dy[dir] - 1] = chess[i][j]
-
-                        kni = temp[i + dx[dir] - 1][j + dy[dir] - 1]
-                        if (kni != num and (i + dx[dir], j + dy[dir]) in omg and kni in lived_knights):
-                            heart[kni] -= 1
-                            lived_knights[kni] = lived_knights[kni] + 1
-                            if (heart[kni] <= 0):
-                                del lived_knights[kni]
-                                continue
-                    else:
-                        if(chess[i][j] == -1):
-                            temp[i - 1][j - 1] = -1
-                        elif(1 <= chess[i][j] <= n):
-                            temp[i - 1][j - 1] = chess[i][j]
-
-            for i in range(1, l + 1):
-                for j in range(1, l + 1):
-                    chess[i][j] = temp[i - 1][j - 1]
+        if(bol): # 움직일 수 있다
+            for i in range(1, n + 1):
+                if(vis[i]):
+                    ix, iy = pos[i]
+                    ih, iw = knights[i]
+                    pos[i] = (ix + dx[dir], iy + dy[dir])
+                    if(i == num):
+                        continue
+                    for ri in range(ix, ix + ih):
+                        for ci in range(iy, iy + iw):
+                            if((ri + dx[dir], ci + dy[dir]) in omg):
+                                heart[i] -= 1
+                                lived_knights[i] = lived_knights[i] + 1
+                                if (heart[i] <= 0):
+                                    del lived_knights[i]
+                                    continue
 
 ans = 0
 for kni, damage in lived_knights.items():
