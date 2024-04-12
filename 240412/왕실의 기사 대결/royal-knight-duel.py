@@ -95,8 +95,11 @@ for _ in range(q):
 
                     if(vis[i][j] == 1):
                         temp[i + dx[dir] - 1][j + dy[dir] - 1] = chess[i][j]
-                    if(chess[i][j] == -1):
-                        temp[i - 1][j - 1] = -1
+                    else:
+                        if(chess[i][j] == -1):
+                            temp[i - 1][j - 1] = -1
+                        elif(1 <= chess[i][j] <= n):
+                            temp[i - 1][j - 1] = chess[i][j]
 
             for i in range(1, l + 1):
                 for j in range(1, l + 1):
