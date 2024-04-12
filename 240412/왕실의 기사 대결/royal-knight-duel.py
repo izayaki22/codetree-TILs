@@ -92,7 +92,7 @@ for _ in range(q):
                         continue
                     for ri in range(ix, ix + ih):
                         for ci in range(iy, iy + iw):
-                            if((ri + dx[dir], ci + dy[dir]) in omg):
+                            if((ri + dx[dir], ci + dy[dir]) in omg and i in lived_knights):
                                 heart[i] -= 1
                                 lived_knights[i] = lived_knights[i] + 1
                                 if (heart[i] <= 0):
