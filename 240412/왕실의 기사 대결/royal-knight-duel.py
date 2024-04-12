@@ -64,9 +64,14 @@ def bfs(idx, dir):
             else:
                 ix, iy = pos[i]
                 ih, iw = knights[i]
-                if((nr <= ix < nr + h and nc <= iy < nc + w) or (nr <= ix + ih - 1 < nr + h and nc <= iy + iw - 1 < nc + w) and visited[i] == False): # 겹치는 경우
+                if ix > nr + h - 1 or nr > ix + ih - 1:
+                    continue
+                if iy > nc + w - 1 or nc > iy + iw - 1:
+                    continue
+                if visited[i] == False:
                     que.append(i)
                     visited[i] = True
+
 
     return True, visited
 
