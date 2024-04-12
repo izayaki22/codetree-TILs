@@ -83,7 +83,6 @@ def bfs(x, y, num, dir):
 
 for _ in range(q):
     num, dir = map(int, input().split())
-
     if(num in lived_knights): # 명령을 받은 기사가 살아있음
         x, y = find_knights(num)
         bol, vis = bfs(x, y, num, dir)
@@ -95,6 +94,14 @@ for _ in range(q):
 
                     if(vis[i][j] == 1):
                         temp[i + dx[dir] - 1][j + dy[dir] - 1] = chess[i][j]
+
+                        kni = temp[i + dx[dir] - 1][j + dy[dir] - 1]
+                        if (kni != num and (i + dx[dir], j + dy[dir]) in omg):
+                            heart[kni] -= 1
+                            lived_knights[kni] = lived_knights[kni] + 1
+                            if (heart[kni] <= 0):
+                                del lived_knights[kni]
+                                continue
                     else:
                         if(chess[i][j] == -1):
                             temp[i - 1][j - 1] = -1
@@ -103,14 +110,6 @@ for _ in range(q):
 
             for i in range(1, l + 1):
                 for j in range(1, l + 1):
-                    if(1 <= temp[i - 1][j - 1] <= n):
-                        kni = temp[i - 1][j - 1]
-                        if(kni != num and (i, j) in omg):
-                            heart[kni] -= 1
-                            lived_knights[kni] = lived_knights[kni] + 1
-                            if(heart[kni] <= 0):
-                                del lived_knights[kni]
-                                continue
                     chess[i][j] = temp[i - 1][j - 1]
 
 ans = 0
