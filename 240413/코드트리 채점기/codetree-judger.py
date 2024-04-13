@@ -1,5 +1,4 @@
 import sys
-input = sys.stdin.readline
 import heapq
 
 q = int(input())
@@ -11,63 +10,57 @@ heap = []  # 채점대기큐 (p, t, domain/id)
 waiting_url = {}  # {domain/id : 1}
 doing = {}  # 채점진행 dict {domain : start}
 finish = {}  # 채점완료 dict {domain : start + 3 * gap}
+domain_heap = {} # domain별 우선순위큐
 nothingjudge = [i for i in range(1, n + 1)]
 heapq.heapify(nothingjudge)
 
 ans = 1
 heapq.heappush(heap, (1, 0, u))
 waiting_url[u] = 1
+do, id = u.split('/')
+domain_heap[do] = heap
 
 for _ in range(1, q):
-
     cmd_list = input().split()
 
     if(cmd_list[0] == '200'):
         t, p, u = cmd_list[1:]
         t, p = int(t), int(p)
+        do, id = u.split('/')
         if(u not in waiting_url):
-            heapq.heappush(heap, (p, t, u))
+            if(do in domain_heap):
+                heapq.heappush(domain_heap[do], (p, t, u))
+            else:
+                heap = []
+                heapq.heappush(heap, (p, t, u))
+                domain_heap[do] = heap
             waiting_url[u] = 1
             ans += 1
 
     elif (cmd_list[0] == '300'):
         t = int(cmd_list[1]) # 채점 start 시간
-        total = len(heap)
+        temp = []
+        if(len(nothingjudge) > 0):
 
-        for _ in range(total):
-            if(len(heap) == 0):
-                break
+            for do, hea in domain_heap.items():
+                if(do in doing):
+                    continue
+                if(do in finish and t < finish[do]):
+                    continue
+                if(len(hea) > 0):
+                    temp.append(hea)
 
-            np, nt, nu = heapq.heappop(heap)
-            ndom, nid = nu.split('/')
+            if(len(temp) > 0):
+                temp = sorted(temp, key=lambda x: (x[0][0], x[0][1]))
+                np, nt, nu = temp[0][0]
+                ndom, nid = nu.split('/')
 
-            if(ndom not in doing):
-
-                if(ndom in finish):
-                    if(t >= finish[ndom]):
-                        # 조건 만족
-                        if(len(nothingjudge) > 0):
-                            i = heapq.heappop(nothingjudge)
-                            judgelist[i] = ndom
-                            doing[ndom] = t
-                            del waiting_url[nu]
-                            ans -= 1
-                            break
-                        break
-                    else:
-                        heapq.heappush(heap, (np, nt, nu))
-                else:
-                    if (len(nothingjudge) > 0):
-                        i = heapq.heappop(nothingjudge)
-                        judgelist[i] = ndom
-                        doing[ndom] = t
-                        del waiting_url[nu]
-                        ans -= 1
-                        break
-                    break
-
-            else:
-                heapq.heappush(heap,(np, nt, nu))
+                i = heapq.heappop(nothingjudge)
+                judgelist[i] = ndom
+                doing[ndom] = t
+                del waiting_url[nu]
+                ans -= 1
+                heapq.heappop(domain_heap[ndom])
 
     elif (cmd_list[0] == '400'):
 
