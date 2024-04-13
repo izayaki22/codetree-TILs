@@ -68,9 +68,10 @@ for _ in range(1, q):
         dom = judgelist[jid]
         judgelist[jid] = 0
 
-        start = doing[dom]
-        finish[dom] = start + 3 * (t - start)
-        del doing[dom]
+        if(dom in doing):
+            start = doing[dom]
+            finish[dom] = start + 3 * (t - start)
+            del doing[dom]
 
     else:
         print(len(heap))
