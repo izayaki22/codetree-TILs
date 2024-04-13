@@ -11,6 +11,8 @@ heap = []  # 채점대기큐 (p, t, domain/id)
 waiting_url = {}  # {domain/id : 1}
 doing = {}  # 채점진행 dict {domain : start}
 finish = {}  # 채점완료 dict {domain : start + 3 * gap}
+nothingjudge = [i for i in range(1, n + 1)]
+heapq.heapify(nothingjudge)
 
 ans = 1
 heapq.heappush(heap, (1, 0, u))
@@ -44,24 +46,24 @@ for _ in range(1, q):
                 if(ndom in finish):
                     if(t >= finish[ndom]):
                         # 조건 만족
-                        for i in range(1, n + 1):
-                            if(judgelist[i] == 0):
-                                judgelist[i] = ndom
-                                doing[ndom] = t
-                                del waiting_url[nu]
-                                ans -= 1
-                                break
-                        break
-                    else:
-                        heapq.heappush(heap, (np, nt, nu))
-                else:
-                    for i in range(1, n + 1):
-                        if (judgelist[i] == 0):
+                        if(len(nothingjudge) > 0):
+                            i = heapq.heappop(nothingjudge)
                             judgelist[i] = ndom
                             doing[ndom] = t
                             del waiting_url[nu]
                             ans -= 1
                             break
+                        break
+                    else:
+                        heapq.heappush(heap, (np, nt, nu))
+                else:
+                    if (len(nothingjudge) > 0):
+                        i = heapq.heappop(nothingjudge)
+                        judgelist[i] = ndom
+                        doing[ndom] = t
+                        del waiting_url[nu]
+                        ans -= 1
+                        break
                     break
 
             else:
@@ -72,6 +74,7 @@ for _ in range(1, q):
         t, jid = map(int, cmd_list[1:])
         dom = judgelist[jid]
         judgelist[jid] = 0
+        heapq.heappush(nothingjudge, jid)
         if(dom in doing):
             start = doing[dom]
             finish[dom] = start + 3 * (t - start)
