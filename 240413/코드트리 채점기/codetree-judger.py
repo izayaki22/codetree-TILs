@@ -66,9 +66,9 @@ for _ in range(1, q):
 
         t, jid = map(int, cmd_list[1:])
         dom = judgelist[jid]
-        judgelist[jid] = 0
-        heapq.heappush(nothingjudge, jid)
         if(dom in doing):
+            judgelist[jid] = 0
+            heapq.heappush(nothingjudge, jid)
             start = doing[dom]
             finish[dom] = start + 3 * (t - start)
             del doing[dom]
